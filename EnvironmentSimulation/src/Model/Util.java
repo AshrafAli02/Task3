@@ -6,9 +6,6 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 
-import com.mysql.cj.jdbc.Driver;
-import com.mysql.cj.protocol.x.ReusableOutputStream;
-
 public class Util {
 
     static String ConnectionString = "jdbc:mysql://localhost:3306/";
@@ -126,6 +123,84 @@ public class Util {
         }
         return lc;
 
+    }
+
+    public static boolean IsFileExist(String FileName) throws Exception {
+        boolean result = false;
+        try {
+            Connection sqlconn = DriverManager.getConnection(ConnectionString + DBName, UserName, Password);
+            if (sqlconn != null) {
+                Statement stat = sqlconn.createStatement();
+                String Query = "Select Count(*) from FileUpdateTime where FileName='" + FileName + "'";
+                ResultSet set = stat.executeQuery(Query);
+                if (set != null) {
+                    while (set.next()) {
+                        int Count = set.getInt(1);
+                        if (Count == 1) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+        } catch (Exception ex) {
+            throw new Exception(ex.getMessage());
+        }
+        return result;
+
+    }
+
+    public static void AddFileData(String FileName, long LastAccessTime) throws Exception {
+        try {
+            Connection sqlconn = DriverManager.getConnection(ConnectionString + DBName, UserName, Password);
+            if (sqlconn != null) {
+                Statement stat = sqlconn.createStatement();
+                String Query = "Insert into FileUpdateTime(FileName,LastAccessTime) values ('" + FileName + "','"
+                        + LastAccessTime + "')";
+                stat.executeUpdate(Query);
+            }
+
+        } catch (Exception ex) {
+            throw new Exception(ex.getMessage());
+        }
+    }
+
+    public static void UpdateLastAccessTime(String FileName, long LastAccessTime) throws Exception {
+        try {
+            Connection sqlconn = DriverManager.getConnection(ConnectionString + DBName, UserName, Password);
+            if (sqlconn != null) {
+                Statement stat = sqlconn.createStatement();
+                String Query = "update FileUpdateTime set LastAccessTime='" + LastAccessTime + "' where FileName='"
+                        + FileName + "'";
+                stat.executeUpdate(Query);
+            }
+
+        } catch (Exception ex) {
+            throw new Exception(ex.getMessage());
+        }
+    }
+
+    public static long GetLastAccessTime(String FileName) throws Exception {
+        long LastAccessTime = 0;
+        try {
+            Connection sqlconn = DriverManager.getConnection(ConnectionString + DBName, UserName, Password);
+            if (sqlconn != null) {
+                Statement stat = sqlconn.createStatement();
+                String Query = "Select LastAccessTime from FileUpdateTime where FileName='"
+                        + FileName + "'";
+                ResultSet set = stat.executeQuery(Query);
+                if (set != null) {
+                    while (set.next()) {
+                        long time = set.getLong(1);
+                        LastAccessTime = time;
+                    }
+                }
+            }
+
+        } catch (Exception ex) {
+            throw new Exception(ex.getMessage());
+        }
+        return LastAccessTime;
     }
 
 }

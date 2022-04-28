@@ -21,26 +21,39 @@ public class App {
 
         // File Write Section
 
-        WriteDataToFile("LogFile17.txt", 5000);
+        WriteDataToFile("LogFile21.txt", 5000);
         System.out.println("\n\nData Added");
 
         // File Read Section
 
-        // File logfiledir = new File(LogFolderPath);
-        // File files[] = logfiledir.listFiles();
-        // for (File file : files) {
-        // List<LogDetail> LogData = GetDataFromFile(file);
-        // List<LogDetail> lastActions = AddLastActions(LogData);
-        // System.out.println("File Name : " + file.getName() + "\n");
-        // if (lastActions.size() != 0) {
-        // System.out.println("-------------------------------");
-        // PrintData(lastActions);
-        // System.out.println("-------------------------------");
-        // } else {
-        // System.out.println("No Updates in This File");
-        // }
+        File logfiledir = new File(LogFolderPath);
+        File files[] = logfiledir.listFiles();
+        for (File file : files) {
+            boolean IsFileExiest = Util.IsFileExist(file.getName());
+            if (IsFileExiest) {
+                long accesstime = file.lastModified();
+                long DbLastAccessTime = Util.GetLastAccessTime(file.getName());
 
-        // }
+                if (accesstime > DbLastAccessTime) {
+                    Util.UpdateLastAccessTime(file.getName(), accesstime);
+                    List<LogDetail> LogData = GetDataFromFile(file);
+                    System.out.println("File name : " + file.getName());
+                    System.out.println("-------------------------------------------");
+                    AddLastActions(LogData);
+                    System.out.println("-------------------------------------------");
+
+                }
+            } else {
+                Util.AddFileData(file.getName(), file.lastModified());
+                List<LogDetail> LogData = GetDataFromFile(file);
+                System.out.println("File name : " + file.getName());
+                System.out.println("-------------------------------------------");
+                AddLastActions(LogData);
+                System.out.println("-------------------------------------------");
+
+            }
+
+        }
 
     }
 
@@ -51,8 +64,8 @@ public class App {
         }
     }
 
-    public static List<LogDetail> AddLastActions(List<LogDetail> LogsData) throws Exception {
-        List<LogDetail> LastActionsData = new ArrayList<>();
+    public static void AddLastActions(List<LogDetail> LogsData) throws Exception {
+
         for (String mec : MechineList) {
             Boolean res = Util.IsAlreadyHaveData(mec);
             if (res) {
@@ -61,17 +74,16 @@ public class App {
                 if (filterdata.size() != 0) {
                     LogDetail Lastaction = GetLastAction(filterdata);
                     Util.UpdateLogDetails(Lastaction);
-                    LastActionsData.add(Lastaction);
+                    System.out.println(Lastaction.toString());
                 }
             } else {
                 List<LogDetail> filterdata = GetSystemLog(LogsData, mec);
                 LogDetail Lastaction = GetLastAction(filterdata);
                 Util.AddLogDetails(Lastaction);
-                LastActionsData.add(Lastaction);
+                System.out.println(Lastaction.toString());
             }
 
         }
-        return LastActionsData;
 
     }
 
